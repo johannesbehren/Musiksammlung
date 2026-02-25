@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <link rel="icon" href="Musik/More Musik Discs Pic/Blank.svg" type="image/svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musiksammlung (YT Style)</title>
+    <link rel="stylesheet" href="./Songs.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <h3>Meine Sammlungen</h3>
+            <div class="folder-nav-wrapper">
+                <ul class="folder-list" id="folderList"></ul>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <h2 id="currentFolderTitle">Wähle eine Sammlung</h2>
+            <ul class="song-list" id="mainSongList"></ul>
+        </main>
+    </div>
+
+    <div class="custom-audio-player">
+        <div class="progress-bar-container">
+            <input type="range" class="progress-bar" value="0" min="0" max="100">
+            <div class="time-display">
+                <span class="current-time">0:00</span>
+                /
+                <span class="duration">0:00</span>
+            </div>
+        </div>
+        <div class="player-controls-container">
+            <div class="current-song-info">
+                <img id="currentSongThumbnail" src="" alt="Song Thumbnail" class="song-thumbnail-player">
+                <span id="currentSongName">Kein Song ausgewählt</span>
+            </div>
+            <div class="controls">
+                <button id="prevBtn" title="Vorheriger Song"><img src="Bilder/Previous.svg"></button>
+                <button id="playPauseBtn" title="Play / Pause"><img src="Bilder/Play.svg"></button>
+                <button id="nextBtn" title="Nächster Song"><img src="Bilder/Next.svg"></button>
+                <button id="repeatBtn" title="Wiederholen"><img id="repeatIcon" src="Bilder/Repeat.svg"></button>
+                <div class="volume-control" id="volumeControl">
+                    <button id="muteUnmuteBtn" title="Stummschalten / Laut"><img id="volumeIcon" src="Volume.svg"></button>
+                    <div class="volume-slider-wrapper">
+                        <div id="volumeTooltip" class="volume-tooltip">10%</div>
+                        <input type="range" id="volumeSlider" min="0" max="1" step="0.01">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <audio id="globalAudioPlayer"></audio>
+    </div>
+    <script src="./Songs.js"></script>
+</body>
+</html>
