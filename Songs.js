@@ -73,6 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextBtn = document.getElementById('nextBtn');
     const repeatBtn = document.getElementById('repeatBtn');
     const repeatIcon = document.getElementById('repeatIcon');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const shuffleIcon = document.getElementById('shuffleIcon');
     const progressBar = document.querySelector('.progress-bar');
     const currentTimeSpan = document.querySelector('.current-time');
     const durationSpan = document.querySelector('.duration');
@@ -81,25 +83,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const volumeSlider = document.getElementById('volumeSlider');
     const muteUnmuteBtn = document.getElementById('muteUnmuteBtn');
     const volumeIcon = document.getElementById('volumeIcon');
-    
-    // Referenzen für das neue Layout
     const folderListContainer = document.getElementById('folderList');
     const mainSongList = document.getElementById('mainSongList');
     const currentFolderTitle = document.getElementById('currentFolderTitle');
     const folderNavWrapper = document.querySelector('.folder-nav-wrapper');
-    
-    // Referenz für den Lautstärke-Tooltip
     const volumeTooltip = document.getElementById('volumeTooltip');
     const volumeSliderWrapper = document.querySelector('.volume-slider-wrapper');
-    
-
-    // Konstanten für die Bildpfade
     const PL = 'Bilder/Play.svg';
     const PA = 'Bilder/Pause.svg';
-    const RE = 'Bilder/Repeat.svg'; 
-    const REA = 'Bilder/Repeat_Active.svg';
+    const RE = 'Bilder/Repeat.svg';
+    const REA = 'Bilder/Repeat_All.svg';
+    const R1 = 'Bilder/Repeat_One.svg';
+    const SH = 'Bilder/Shuffle.svg';
+    const SHA = 'Bilder/Shuffle_Active.svg';
     const M = 'Bilder/Mute.svg';
-    const VL = 'Bilder/Low.svg'
+    const VL = 'Bilder/Low.svg';
     const VME = 'Bilder/Medium.svg';
     const VMA = 'Bilder/Max.svg';
     
@@ -107,22 +105,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPlayingSongItem = null;
     let currentFolderKey = localStorage.getItem(LF) || Object.keys(musicFolders)[0];
     let currentPlaylistSongs = [];
+    let activePlaybackPlaylist = [];
+    let playbackPlaylistOrdered = [];
+    let playbackPlaylistFolderKey = null;
+    let repeatMode = 'off';
+    let isShuffleActive = false;
     let currentPlaylistIndex = -1;
     let progressBarInterval = null;
     let lastKnownVolume = parseFloat(localStorage.getItem(LV)) || 0.1;
 
-    // Initialisierung des Lautstärkereglers und des Wiederholen-Buttons (Wird jetzt in initializeApp() gemacht)
     audioPlayer.volume = lastKnownVolume;
     volumeSlider.value = lastKnownVolume;
 
     // -------------------- Hilfsfunktionen --------------------
-
     const formatTime = (seconds) => {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
         return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
     };
-
     const checkImageExists = async (url) => {
         return new Promise(resolve => {
             const img = new Image();
@@ -131,8 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             img.src = url;
         });
     };
-    
-    // Funktion zum Aktualisieren des Lautstärke-Icons und des Tooltips
     const updateVolumeIcon = () => {
         const currentVolume = parseFloat(audioPlayer.volume);
         const percentage = Math.round(currentVolume * 100);
@@ -140,18 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentVolume >= 0.80) {volumeIcon.src = VMA;}
         else if (currentVolume >= 0.40) {volumeIcon.src = VME;}
         else {volumeIcon.src = VL;}
-
-        // volumePercentageSpan.textContent = `${percentage}%`; // ENTFERNT
-        volumeTooltip.textContent = `${percentage}%`; // FÜR INITIALISIERUNG
-        
-        // Speichere die nicht gemutete Lautstärke für das Entstummen
+        volumeTooltip.textContent = `${percentage}%`;
         if (currentVolume > 0 && !audioPlayer.muted) {
             lastKnownVolume = currentVolume;
             localStorage.setItem(LV, currentVolume);
         }
     };
-    
-    // Funktion zum Aktualisieren des Lautstärke-Tooltips
     const updateVolumeTooltip = () => {
         const value = volumeSlider.value;
         const percentage = Math.round(value * 100);
@@ -163,120 +155,99 @@ document.addEventListener('DOMContentLoaded', () => {
         volumeTooltip.style.left = `${thumbPosition}px`;
         volumeTooltip.style.transform = `translateX(-50%)`;
     };
-
-    // Mausrad-Steuerung für die Lautstärke
     volumeSliderWrapper.addEventListener('wheel', (event) => {
-        // Verhindert, dass die ganze Seite scrollt, während man die Lautstärke ändert
         event.preventDefault();
-
-        // Bestimmt die Richtung des Scrollens (nach oben = lauter, nach unten = leiser)
-        // event.deltaY ist negativ beim Scrollen nach oben
         const step = 0.05;
         let newVolume = parseFloat(audioPlayer.volume);
-        // Scroll nach oben -> Lauter
         if (event.deltaY < 0) {newVolume = Math.min(1, newVolume + step);}
-        // Scroll nach unten -> Leiser
         else {newVolume = Math.max(0, newVolume - step);}
-        // Werte im Player und Slider aktualisieren
         audioPlayer.volume = newVolume;
         volumeSlider.value = newVolume;
-        // Deine bestehenden Funktionen aufrufen, um Icon und Tooltip zu aktualisieren
         updateVolumeIcon();
         updateVolumeTooltip();
-    }, { passive: false }); // 'passive: false' ist wichtig, damit preventDefault() funktioniert
-    
-    // -------------------- Navigations-Logik (Fade-Steuerung) --------------------
+    }, { passive: false });
 
+    // -------------------- Navigations-Logik (Fade-Steuerung) --------------------
     const updateFadeEffect = () => {
-        // Nur relevant für die Mobile-Ansicht (kleinere Bildschirme)
         if (window.innerWidth > 768) {
             folderNavWrapper.classList.remove('show-fade-left', 'show-fade-right');
             return;
         }
-        
         const isScrollable = folderListContainer.scrollWidth > folderListContainer.clientWidth;
-        
         if (!isScrollable) {
-            // Wenn der gesamte Inhalt sichtbar ist, kein Fading.
             folderNavWrapper.classList.remove('show-fade-left', 'show-fade-right');
             return;
         }
-
         const currentScroll = folderListContainer.scrollLeft;
         const maxScroll = folderListContainer.scrollWidth - folderListContainer.clientWidth;
         const tolerance = 20;
-
-        // Linkes Fading: Anzeigen, wenn NICHT am Anfang
         const showLeftFade = currentScroll > tolerance;
-        
-        // Rechtes Fading: Anzeigen, wenn NICHT am Ende
         const showRightFade = currentScroll < maxScroll - tolerance;
-
-        // Klassen setzen
         folderNavWrapper.classList.toggle('show-fade-left', showLeftFade);
         folderNavWrapper.classList.toggle('show-fade-right', showRightFade);
     };
-    
-    // Event-Listener für das Scrollen/Wischen
+
     folderListContainer.addEventListener('scroll', updateFadeEffect);
-    
-    // Event-Listener für Größenänderungen des Fensters (wichtig für Mobile/PC Wechsel)
     window.addEventListener('resize', updateFadeEffect);
-
+    const updateRepeatMode = () => {
+        repeatIcon.src = repeatMode === 'one' ? R1 : repeatMode === 'all' ? REA : RE;
+        repeatBtn.classList.toggle('active-repeat', repeatMode !== 'off');
+        repeatBtn.classList.toggle('active-repeat-one', repeatMode === 'one');
+        audioPlayer.loop = repeatMode === 'one';
+    };
+    const shuffleArray = (array) => {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    };
+    const updateShuffleMode = () => {
+        if (isShuffleActive) {
+            activePlaybackPlaylist = shuffleArray([...playbackPlaylistOrdered]);
+            if (currentPlayingSongItem) {
+                const currentIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
+                if (currentIndex > 0) {
+                    const [currentItem] = activePlaybackPlaylist.splice(currentIndex, 1);
+                    activePlaybackPlaylist.unshift(currentItem);
+                }
+            }
+        }
+        else {activePlaybackPlaylist = [...playbackPlaylistOrdered];}
+    };
     // -------------------- Rendering-Funktionen (mit Fade-Update) --------------------
-
-    /**
-     * Erstellt die klickbaren Ordner-Links in der Sidebar.
-     */
     const renderFolders = () => {
         folderListContainer.innerHTML = '';
         for (const [key, data] of Object.entries(musicFolders)) {
-            // Holt den Titel aus den Song-Daten, entfernt Bindestriche und kapitalisiert
             const folderTitle = key.replace(/-/g, ' ').split(' ')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
-                
             const li = document.createElement('li');
             li.classList.add('folder-item');
             li.textContent = folderTitle;
             li.dataset.folderKey = key;
-            
             li.addEventListener('click', () => {
                 loadFolderSongs(key, folderTitle);
-                // Stellt sicher, dass der aktive Ordner sichtbar ist, nachdem er angeklickt wurde (z.B. auf Mobile)
                 li.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
             });
-            
             folderListContainer.appendChild(li);
         }
-        
-        // Ruft nach dem Rendern die Funktion zum Aktualisieren des Fade-Effekts auf
         updateFadeEffect();
     };
-    
-    /**
-     * Lädt die Songs für den ausgewählten Ordner in den Hauptinhaltsbereich.
-     */
+
     const loadFolderSongs = async (folderKey, folderTitle) => {
         currentFolderKey = folderKey;
-        localStorage.setItem(LF, folderKey); // Letzten Ordner speichern
-
-        // Markiert den aktiven Ordner in der Sidebar
+        localStorage.setItem(LF, folderKey);
         document.querySelectorAll('.folder-item').forEach(item => {
             item.classList.remove('active-folder');
         });
         const activeFolderItem = document.querySelector(`.folder-item[data-folder-key="${folderKey}"]`);
-        if (activeFolderItem) {
-            activeFolderItem.classList.add('active-folder');
-        }
-
+        if (activeFolderItem) {activeFolderItem.classList.add('active-folder');}
         currentFolderTitle.textContent = folderTitle;
-        mainSongList.innerHTML = ''; // Liste leeren
-        
-        // Verwendung der globalen Konstante
+        mainSongList.innerHTML = '';
         const paths = musicFolders[folderKey];
         const songs = paths.songs;
-
         for (const songName of songs) {
             const li = document.createElement('li');
             li.classList.add('song-item');
@@ -285,27 +256,19 @@ document.addEventListener('DOMContentLoaded', () => {
             li.dataset.name = cleanSongName;
             li.dataset.columnId = folderKey;
             li.title = cleanSongName;
-
             let finalImagePath = '';
-
-            // Zeigt ein Thumbnail, falls ein imagePath existiert und es sich nicht um die Ausnahmen handelt
             if (paths.imagePath && folderKey) {
                 const songImage = document.createElement('img');
                 songImage.classList.add('song-thumbnail');
                 const potentialImagePath = `${paths.imagePath}${songName.replace(/\.(ogg|mp3)$/, '')}.png`;
-                finalImagePath = DT; // Nutzt die globale Konstante
-
+                finalImagePath = DT;
                 const imageExists = await checkImageExists(potentialImagePath);
-                if (imageExists) {
-                    finalImagePath = potentialImagePath;
-                }
-
+                if (imageExists) {finalImagePath = potentialImagePath;}
                 songImage.src = finalImagePath;
                 li.dataset.imagePath = finalImagePath;
                 li.appendChild(songImage);
-            } else {
-                li.dataset.imagePath = '';
             }
+            else {li.dataset.imagePath = '';}
 
             const span = document.createElement('span');
             span.textContent = cleanSongName;
@@ -316,11 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             mainSongList.appendChild(li);
         }
-        
-        // Songs im aktuellen Ordner zur Playlist setzen
         currentPlaylistSongs = Array.from(mainSongList.children);
-        
-        // Überprüfen, ob der zuletzt gespielte Song im geladenen Ordner ist und ihn aktiv setzen
+        if (playbackPlaylistFolderKey === folderKey) {
+            playbackPlaylistOrdered = [...currentPlaylistSongs];
+            if (isShuffleActive) { updateShuffleMode(); }
+            else { activePlaybackPlaylist = [...playbackPlaylistOrdered]; }
+        }
         const lastSongData = localStorage.getItem(LS);
         if (lastSongData) {
             const { path } = JSON.parse(lastSongData);
@@ -332,25 +296,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPlaylistIndex = currentPlaylistSongs.indexOf(lastPlayedItem);
             }
         }
-        
-        // Ruft nach dem Laden die Funktion zum Aktualisieren des Fade-Effekts auf
         updateFadeEffect();
     };
 
     // -------------------- Player-Logik --------------------
-
-    /**
-     * Startet oder stoppt die Wiedergabe.
-     */
     const togglePlayPause = () => {
         if (audioPlayer.paused) {
-            // Nur spielen, wenn ein Song ausgewählt ist
             if (audioPlayer.src) {
                 audioPlayer.play();
                 playPauseIcon.src = PA;
                 startProgressBarUpdate();
             }
-        } else {
+        }
+        else {
             audioPlayer.pause();
             playPauseIcon.src = PL;
             stopProgressBarUpdate();
@@ -358,84 +316,81 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDocumentTitle();
     };
 
-    /**
-     * Spielt den nächsten Song in der Playlist.
-     */
     const playNextSong = () => {
-        if (currentPlaylistSongs.length === 0) return;
-
-        // Finde den Index des aktuell gespielten Songs
-        currentPlaylistIndex = currentPlaylistSongs.indexOf(currentPlayingSongItem);
-        
-        let nextIndex = (currentPlaylistIndex + 1) % currentPlaylistSongs.length;
-        
-        if (currentPlaylistIndex === -1 && currentPlaylistSongs.length > 0) {
-            nextIndex = 0;
+        if (activePlaybackPlaylist.length === 0 && playbackPlaylistOrdered.length > 0) {
+            activePlaybackPlaylist = [...playbackPlaylistOrdered];
         }
-
-        handleSongClick(currentPlaylistSongs[nextIndex]);
+        if (activePlaybackPlaylist.length === 0) return;
+        currentPlaylistIndex = activePlaybackPlaylist.indexOf(currentPlayingSongItem);
+        if (currentPlaylistIndex === -1 && currentPlayingSongItem) {
+            currentPlaylistIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
+        }
+        if (currentPlaylistIndex === -1) { currentPlaylistIndex = 0; }
+        let nextIndex = currentPlaylistIndex + 1;
+        if (nextIndex >= activePlaybackPlaylist.length) {
+            if (repeatMode === 'all') { nextIndex = 0; }
+            else { return; }
+        }
+        handleSongClickFromPlaylist(activePlaybackPlaylist[nextIndex]);
     };
-
-    /**
-     * Spielt den vorherigen Song in der Playlist.
-     */
     const playPrevSong = () => {
-        if (currentPlaylistSongs.length === 0) return;
-
-        // Finde den Index des aktuell gespielten Songs
-        currentPlaylistIndex = currentPlaylistSongs.indexOf(currentPlayingSongItem);
-
+        if (activePlaybackPlaylist.length === 0 && playbackPlaylistOrdered.length > 0) {
+            activePlaybackPlaylist = [...playbackPlaylistOrdered];
+        }
+        if (activePlaybackPlaylist.length === 0) return;
+        currentPlaylistIndex = activePlaybackPlaylist.indexOf(currentPlayingSongItem);
+        if (currentPlaylistIndex === -1 && currentPlayingSongItem) {
+            currentPlaylistIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
+        }
+        if (currentPlaylistIndex === -1) { currentPlaylistIndex = 0; }
         let prevIndex = currentPlaylistIndex - 1;
         if (prevIndex < 0) {
-            prevIndex = currentPlaylistSongs.length - 1;
+            if (repeatMode === 'all') { prevIndex = activePlaybackPlaylist.length - 1; }
+            else { return; }
         }
-
-        handleSongClick(currentPlaylistSongs[prevIndex]);
+        handleSongClickFromPlaylist(activePlaybackPlaylist[prevIndex]);
     };
-
-    /**
-     * Behandelt den Klick auf einen Song-Eintrag.
-     */
     const handleSongClick = (songItem) => {
-        // Entferne 'active' von allen Elementen
         document.querySelectorAll('.song-item.active').forEach(item => {
             item.classList.remove('active');
         });
-        
-        // Setze 'active' für den neuen Song
         songItem.classList.add('active');
-        
+        playbackPlaylistOrdered = [...currentPlaylistSongs];
+        playbackPlaylistFolderKey = currentFolderKey;
+        activePlaybackPlaylist = [...playbackPlaylistOrdered];
         currentPlayingSongItem = songItem;
-        currentPlaylistIndex = currentPlaylistSongs.indexOf(songItem);
-
+        if (isShuffleActive) { updateShuffleMode(); }
+        currentPlaylistIndex = activePlaybackPlaylist.indexOf(songItem);
         const songPath = songItem.dataset.path;
         const songName = songItem.dataset.name;
-        // Beim Klick wird der Pfad aus dem Dataset geholt
         const songImage = songItem.dataset.imagePath || DT; 
-
         currentSongNameSpan.textContent = songName;
         currentSongThumbnail.src = songImage;
-        
-        // Lade den neuen Song nur, wenn es ein anderer ist, sonst einfach abspielen
         if (audioPlayer.src !== songPath) {
              audioPlayer.src = songPath;
              audioPlayer.load();
         }
-        
-        // Speichere den Song-Pfad und Namen im localStorage
         localStorage.setItem(LS, JSON.stringify({ path: songPath, name: songName, image: songImage }));
-
-        // Starte die Wiedergabe
-        if (audioPlayer.paused) {
-            togglePlayPause();
-        }
+        if (audioPlayer.paused) {togglePlayPause();}
+    };
+    const handleSongClickFromPlaylist = (songItem) => {
+        currentPlayingSongItem = songItem;
+        document.querySelectorAll('.song-item.active').forEach(item => item.classList.remove('active'));
+        const visibleItem = document.querySelector(`.song-item[data-path="${songItem.dataset.path}"]`);
+        if (visibleItem) { visibleItem.classList.add('active'); }
+        const songPath = songItem.dataset.path;
+        const songName = songItem.dataset.name;
+        const songImage = songItem.dataset.imagePath || DT;
+        currentSongNameSpan.textContent = songName;
+        currentSongThumbnail.src = songImage;
+        audioPlayer.src = songPath;
+        audioPlayer.load();
+        audioPlayer.play().then(() => startProgressBarUpdate()).catch(() => {});
+        localStorage.setItem(LS, JSON.stringify({ path: songPath, name: songName, image: songImage }));
+        updateDocumentTitle();
     };
 
     // -------------------- Fortschrittsanzeige und Timer --------------------
-
-    /**
-     * Startet die Aktualisierung der Fortschrittsanzeige (Progress Bar).
-     */
     const startProgressBarUpdate = () => {
         if (progressBarInterval) {
             clearInterval(progressBarInterval);
@@ -451,70 +406,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     };
 
-    /**
-     * Stoppt die Aktualisierung der Fortschrittsanzeige.
-     */
     const stopProgressBarUpdate = () => {
         clearInterval(progressBarInterval);
         progressBarInterval = null;
     };
 
     // -------------------- Event-Listener --------------------
-
     playPauseBtn.addEventListener('click', togglePlayPause);
     prevBtn.addEventListener('click', playPrevSong);
     nextBtn.addEventListener('click', playNextSong);
-
     repeatBtn.addEventListener('click', () => {
-        audioPlayer.loop = !audioPlayer.loop;
-        
-        // Icon-Wechsel basierend auf dem Loop-Status
-        if (audioPlayer.loop) {
-            repeatBtn.classList.add('active-loop');
-            repeatIcon.src = REA;
-        } else {
-            repeatBtn.classList.remove('active-loop');
-            repeatIcon.src = RE; // Zurück zum "Rot"-Icon
+        if (isShuffleActive) {
+            isShuffleActive = false;
+            shuffleBtn.classList.remove('active-shuffle');
+            shuffleIcon.src = SH;
+        }
+        repeatMode = repeatMode === 'off' ? 'one' : repeatMode === 'one' ? 'all' : 'off';
+        updateRepeatMode();
+    });
+    shuffleBtn.addEventListener('click', () => {
+        isShuffleActive = !isShuffleActive;
+        if (isShuffleActive) {
+            repeatMode = 'off';
+            updateRepeatMode();
+        }
+        shuffleBtn.classList.toggle('active-shuffle', isShuffleActive);
+        shuffleIcon.src = isShuffleActive ? SHA : SH;
+        if (playbackPlaylistOrdered.length > 0) {
+            updateShuffleMode();
         }
     });
-
     progressBar.addEventListener('input', () => {
-        // Spieler während des Ziehens pausieren (optional, aber nützlich)
         stopProgressBarUpdate(); 
         currentTimeSpan.textContent = formatTime(progressBar.value);
         const progress = (progressBar.value / progressBar.max) * 100;
         progressBar.style.setProperty('--progress-width', `${progress}%`);
     });
-
     progressBar.addEventListener('change', () => {
         audioPlayer.currentTime = progressBar.value;
-        // Bei pausiertem Zustand: Anzeige aktualisieren, aber nicht abspielen
         if (!audioPlayer.paused) {
             startProgressBarUpdate();
         }
     });
 
     // -------------------- Audio-Events --------------------
-    
     audioPlayer.addEventListener('play', () => {
         playPauseIcon.src = PA;
     });
-
     audioPlayer.addEventListener('pause', () => {
         playPauseIcon.src = PL;
     });
-
     audioPlayer.addEventListener('ended', () => {
         stopProgressBarUpdate();
-        if (audioPlayer.loop) {
-            audioPlayer.play(); // Wiedergabe fortsetzen, da loop = true
-            startProgressBarUpdate();
-        } else {
-            playNextSong();
-        }
+        if (repeatMode === 'one') {audioPlayer.play();}
+        else {playNextSong();}
         updateDocumentTitle();
     });
-
     audioPlayer.addEventListener('loadedmetadata', () => {
         durationSpan.textContent = formatTime(audioPlayer.duration);
         progressBar.max = audioPlayer.duration;
@@ -522,88 +469,56 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTimeSpan.textContent = formatTime(0);
         progressBar.style.setProperty('--progress-width', `0%`);
     });
-    
-    // -------------------- Lautstärkeregelung --------------------
 
-    // Event für das Ziehen des Schiebereglers
+    // -------------------- Lautstärkeregelung --------------------
     volumeSlider.addEventListener('input', () => {
         audioPlayer.volume = volumeSlider.value;
-        audioPlayer.muted = (audioPlayer.volume < 0.01); // Mute, wenn es nahe Null ist
+        audioPlayer.muted = (audioPlayer.volume < 0.01);
         updateVolumeIcon(); 
-        updateVolumeTooltip(); // Tooltip nur aktualisieren/positionieren
+        updateVolumeTooltip();
     });
-    
-    // Event für das Loslassen des Schiebereglers
     volumeSlider.addEventListener('change', () => {
-        // updateVolumeTooltip(false); // Code zum Ausblenden ENTFERNT
     });
-    
     muteUnmuteBtn.addEventListener('click', () => {
         if (audioPlayer.muted) {
-            // Entstummen: Setze Lautstärke auf den letzten bekannten Wert (oder auf 0.1)
-            // Lese lastKnownVolume aus localStorage, falls es nicht im Skript gesetzt wurde
             let volumeToSet = parseFloat(localStorage.getItem(LV)) || 0.1;
-            
-            // Setze die Lautstärke des Players und hebe die Stummschaltung auf
             audioPlayer.volume = volumeToSet;
             audioPlayer.muted = false;
             volumeSlider.value = volumeToSet;
-        } else {
-            // Stummschalten: Speichere die Lautstärke und setze auf muted = true.
-            // Der volumechange-Event-Listener wird aufgerufen und setzt dann das Icon.
-            audioPlayer.muted = true;
-            volumeSlider.value = 0; // Bewege auch den Slider nach 0
         }
+        else {audioPlayer.muted = true; volumeSlider.value = 0;}
         updateVolumeIcon();
-        updateVolumeTooltip(false); // Tooltip ausblenden
+        updateVolumeTooltip(false);
     });
-    
-    // Event, um das Icon zu aktualisieren, falls die Lautstärke durch andere Mittel geändert wird
     audioPlayer.addEventListener('volumechange', updateVolumeIcon);
 
 
     // -------------------- Initialisierung --------------------
-    
-    /**
-     * Aktualisiert den Dokumententitel mit dem aktuellen Song.
-     */
     const updateDocumentTitle = () => {
         const titlePrefix = 'Musiksammlung von JohansenBre';
         if (currentPlayingSongItem && !audioPlayer.paused) {
              document.title = `▶ ${currentPlayingSongItem.dataset.name} - ${titlePrefix}`;
-        } else {
-             document.title = titlePrefix;
         }
+        else {document.title = titlePrefix;}
     };
-    
     const initializeApp = () => {
-        // Initialisiere den Lautstärke-Status und Slider-Wert
         audioPlayer.volume = lastKnownVolume;
         volumeSlider.value = lastKnownVolume;
         updateVolumeIcon();
-        updateVolumeTooltip(); // Tooltip initial positionieren und Wert anzeigen
-
-        // Icon für den Wiederholen-Button setzen
-        if (audioPlayer.loop) {
-            repeatBtn.classList.add('active-loop');
-            repeatIcon.src = REA;
-        } else {
-            repeatBtn.classList.remove('active-loop');
-            repeatIcon.src = RE;
-        }
-
+        updateVolumeTooltip();
+        repeatMode = 'off';
+        updateRepeatMode();
+        shuffleIcon.src = SH;
+        shuffleBtn.classList.remove('active-shuffle');
         renderFolders();
-        
-        // Den zuletzt aktiven Ordner finden und laden
         let folderToLoad = currentFolderKey;
         let folderTitleToLoad = 'Wähle eine Sammlung';
-
         if (musicFolders[folderToLoad]) {
             folderTitleToLoad = folderToLoad.replace(/-/g, ' ').split(' ')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
-        } else {
-            // Lade den ersten Ordner, falls der gespeicherte nicht existiert
+        }
+        else {
             folderToLoad = Object.keys(musicFolders)[0];
             if (folderToLoad) {
                  folderTitleToLoad = folderToLoad.replace(/-/g, ' ').split(' ')
@@ -611,21 +526,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     .join(' ');
             }
         }
-
         loadFolderSongs(folderToLoad, folderTitleToLoad).then(() => {
-            // Nach dem Laden des Ordners den Status des Players überprüfen und anzeigen
             const lastSongData = localStorage.getItem(LS);
             if (lastSongData) {
                  const { path, name, image } = JSON.parse(lastSongData);
                  currentSongNameSpan.textContent = name;
-                 // Wichtig: Verwende den gespeicherten Bildpfad, fall er leer ist, dann das Default Bild
                  currentSongThumbnail.src = image || DT; 
                  audioPlayer.src = path;
             }
             updateDocumentTitle();
         });
-        
     };
-    
     initializeApp();
 });
