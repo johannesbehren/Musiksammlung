@@ -15,7 +15,7 @@ Eine Ansammlung von Minecraft Musik und Mods
 - Vorher / Nächster ist klar
 - Wiederholung:
   - Aus
-  - Eins: Song wiederholt sing
+  - Eins: Song wiederholt sich
   - Alle: Nach dem letzten Song beginnt es beim ersten in der selben Playlist
 - Zufall: Einer der Songs in der selben Playlist random als nächsten
 - Lautstärkeregler
