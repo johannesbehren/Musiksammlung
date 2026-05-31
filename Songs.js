@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         volumeSlider.value = newVolume;
         updateVolumeIcon();
         updateVolumeTooltip();
-    }, { passive: false });
+    }, {passive: false });
 
     // -------------------- Navigations-Logik (Fade-Steuerung) --------------------
     const updateFadeEffect = () => {
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
             li.dataset.folderKey = key;
             li.addEventListener('click', () => {
                 loadFolderSongs(key, folderTitle);
-                li.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                li.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
             });
             folderListContainer.appendChild(li);
         }
@@ -269,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.appendChild(songImage);
             }
             else {li.dataset.imagePath = '';}
-
             const span = document.createElement('span');
             span.textContent = cleanSongName;
             li.appendChild(span);
@@ -282,14 +281,13 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPlaylistSongs = Array.from(mainSongList.children);
         if (playbackPlaylistFolderKey === folderKey) {
             playbackPlaylistOrdered = [...currentPlaylistSongs];
-            if (isShuffleActive) { updateShuffleMode(); }
-            else { activePlaybackPlaylist = [...playbackPlaylistOrdered]; }
+            if (isShuffleActive) {updateShuffleMode();}
+            else {activePlaybackPlaylist = [...playbackPlaylistOrdered];}
         }
         const lastSongData = localStorage.getItem(LS);
         if (lastSongData) {
-            const { path } = JSON.parse(lastSongData);
+            const {path} = JSON.parse(lastSongData);
             const lastPlayedItem = document.querySelector(`.song-item[data-path="${path}"]`);
-
             if (lastPlayedItem && lastPlayedItem.dataset.columnId === folderKey) {
                 lastPlayedItem.classList.add('active');
                 currentPlayingSongItem = lastPlayedItem;
@@ -298,6 +296,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateFadeEffect();
     };
+
+    // -------------------- Navigation to currently playing song --------------------
+    const findFolderKeyByPath = (songPath) => {
+        for (const [key, data] of Object.entries(musicFolders)) {if (songPath.startsWith(data.songPath)) {return key;}}
+        return null;
+    };
+    const formatFolderTitle = (key) => {
+        return key.replace(/-/g, ' ').split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+    const scrollElementToViewportTop = (el) => {
+        if (!el) return;
+        if (mainSongList) {
+            const container = mainSongList.parentElement;
+            if (container && container.contains(el)) {
+                el.scrollIntoView({behavior: 'smooth', block: 'start'});
+                return;
+            }
+        }
+        el.scrollIntoView({behavior: 'smooth', block: 'start'});
+    };
+    const navigateToPlayingSong = () => {
+        const lastSongData = localStorage.getItem(LS);
+        let songPath = null;
+        if (lastSongData) {try {songPath = JSON.parse(lastSongData).path;} catch (e) {songPath = null;}}
+        if (!songPath && currentPlayingSongItem) {songPath = currentPlayingSongItem.dataset.path;}
+        if (!songPath) return;
+        const targetFolderKey = findFolderKeyByPath(songPath);
+        const scrollToSongInCurrentDOM = () => {
+            const all = Array.from(document.querySelectorAll('.song-item'));
+            const songEl = all.find(el => el.dataset.path === songPath);
+            if (!songEl) return;
+            document.querySelectorAll('.song-item.active').forEach(i => i.classList.remove('active'));
+            songEl.classList.add('active');
+            scrollElementToViewportTop(songEl);
+        };
+        if (targetFolderKey && targetFolderKey !== currentFolderKey) {
+            const title = formatFolderTitle(targetFolderKey);
+            loadFolderSongs(targetFolderKey, title).then(() => {setTimeout(scrollToSongInCurrentDOM, 25);});
+        }
+        else {setTimeout(scrollToSongInCurrentDOM, 25);}
+    };
+    currentSongNameSpan.style.cursor = 'pointer';
+    currentSongNameSpan.title = 'Zur aktuellen Wiedergabe springen';
+    currentSongNameSpan.addEventListener('click', navigateToPlayingSong);
 
     // -------------------- Player-Logik --------------------
     const togglePlayPause = () => {
@@ -315,7 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateDocumentTitle();
     };
-
     const playNextSong = () => {
         if (activePlaybackPlaylist.length === 0 && playbackPlaylistOrdered.length > 0) {
             activePlaybackPlaylist = [...playbackPlaylistOrdered];
@@ -325,11 +368,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPlaylistIndex === -1 && currentPlayingSongItem) {
             currentPlaylistIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
         }
-        if (currentPlaylistIndex === -1) { currentPlaylistIndex = 0; }
+        if (currentPlaylistIndex === -1) {currentPlaylistIndex = 0;}
         let nextIndex = currentPlaylistIndex + 1;
         if (nextIndex >= activePlaybackPlaylist.length) {
-            if (repeatMode === 'all') { nextIndex = 0; }
-            else { return; }
+            if (repeatMode === 'all') {nextIndex = 0;}
+            else {return;}
         }
         handleSongClickFromPlaylist(activePlaybackPlaylist[nextIndex]);
     };
@@ -342,11 +385,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPlaylistIndex === -1 && currentPlayingSongItem) {
             currentPlaylistIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
         }
-        if (currentPlaylistIndex === -1) { currentPlaylistIndex = 0; }
+        if (currentPlaylistIndex === -1) {currentPlaylistIndex = 0;}
         let prevIndex = currentPlaylistIndex - 1;
         if (prevIndex < 0) {
-            if (repeatMode === 'all') { prevIndex = activePlaybackPlaylist.length - 1; }
-            else { return; }
+            if (repeatMode === 'all') {prevIndex = activePlaybackPlaylist.length - 1;}
+            else {return;}
         }
         handleSongClickFromPlaylist(activePlaybackPlaylist[prevIndex]);
     };
@@ -359,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playbackPlaylistFolderKey = currentFolderKey;
         activePlaybackPlaylist = [...playbackPlaylistOrdered];
         currentPlayingSongItem = songItem;
-        if (isShuffleActive) { updateShuffleMode(); }
+        if (isShuffleActive) {updateShuffleMode();}
         currentPlaylistIndex = activePlaybackPlaylist.indexOf(songItem);
         const songPath = songItem.dataset.path;
         const songName = songItem.dataset.name;
@@ -377,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPlayingSongItem = songItem;
         document.querySelectorAll('.song-item.active').forEach(item => item.classList.remove('active'));
         const visibleItem = document.querySelector(`.song-item[data-path="${songItem.dataset.path}"]`);
-        if (visibleItem) { visibleItem.classList.add('active'); }
+        if (visibleItem) {visibleItem.classList.add('active');}
         const songPath = songItem.dataset.path;
         const songName = songItem.dataset.name;
         const songImage = songItem.dataset.imagePath || DT;
@@ -529,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadFolderSongs(folderToLoad, folderTitleToLoad).then(() => {
             const lastSongData = localStorage.getItem(LS);
             if (lastSongData) {
-                 const { path, name, image } = JSON.parse(lastSongData);
+                 const {path, name, image} = JSON.parse(lastSongData);
                  currentSongNameSpan.textContent = name;
                  currentSongThumbnail.src = image || DT; 
                  audioPlayer.src = path;
