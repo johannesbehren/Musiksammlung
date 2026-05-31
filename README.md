@@ -20,4 +20,4 @@ Eine Ansammlung von Minecraft Musik und Mods
 - Zufall: Einer der Songs in der selben Playlist random als nächsten
 - Lautstärkeregler
   - Mit Mausrad oben/runter +/- 5%
-  - Mit Pfeiltasten +/- 1%
+  - Mit Pfeiltasten oben;rechts/runter;links +/- 1%
