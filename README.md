@@ -11,6 +11,9 @@ Eine Ansammlung von Minecraft Musik und Mods
 
 --Steuerung--
 - Anzeige des zurzeit spielenden Songs (oder zuletzt gespielte Song)
+  - Beim Klick auf dem Namen des Songs, wird man zum derzeit spielenden Song navigiert
+    1. Situation: Von einer Playlist zur anderen wechselnd und zum Song runter gehend, bis der Song als erstes oben ist
+    2. Situation: Auf der selben Playlist, aber weggescrolled, dann wird man nach unten gehend, zum spielenden Song gebracht
 - Start / Stop ist klar
 - Vorher / Nächster ist klar
 - Wiederholung:
