@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <link rel="icon" href="Musik/More Musik Discs Pic/Blank.svg" type="image/svg">
+    <link id="favicon"rel="icon"href="Musik/More Musik Discs Pic/Blank.svg" type="image/svg">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"content="width=device-width,initial-scale=1.0">
     <title>Musiksammlung (YT Style)</title>
     <link rel="stylesheet" href="./Songs.css">
 </head>
@@ -18,6 +18,10 @@
 
         <main class="main-content">
             <h2 id="currentFolderTitle">Wähle eine Sammlung</h2>
+            <select name="turl">
+                <option value="normal">Grün / Schwarz</option>
+                <option value="high" style="background-color:black;color:white;">HighContrast</option>
+            </select>
             <ul class="song-list" id="mainSongList"></ul>
         </main>
     </div>
@@ -33,21 +37,21 @@
         </div>
         <div class="player-controls-container">
             <div class="current-song-info">
-                <img id="currentSongThumbnail" src="" alt="Song Thumbnail" class="song-thumbnail-player">
+                <img id="currentSongThumbnail"src=""alt="Song Thumbnail"class="song-thumbnail-player">
                 <span id="currentSongName">Kein Song ausgewählt</span>
             </div>
             <div class="controls">
-                <button id="prevBtn" title="Vorheriger Song"><img src="Bilder/Previous.svg"></button>
-                <button id="playPauseBtn" title="Play / Pause"><img src="Bilder/Play.svg"></button>
-                <button id="nextBtn" title="Nächster Song"><img src="Bilder/Next.svg"></button>
-                <button id="repeatBtn" title="Wiederholen"><img id="repeatIcon" src="Bilder/Repeat.svg"></button>
-                <button id="shuffleBtn" title="Zufallswiedergabe"><img id="shuffleIcon" src="Bilder/Shuffle.svg"></button>
+                <button id="prevBtn"><img src="Bilder/Previous.svg"class="normal"><img src="Bilder/previous.svg"class="high"></button>
+                <button id="playPauseBtn"><img src="Bilder/Play.svg"class="normal"><img src="Bilder/play.svg"class="high"></button>
+                <button id="nextBtn"><img src="Bilder/Next.svg"class="normal"><img src="Bilder/next.svg"class="high"></button>
+                <button id="repeatBtn"><img id="repeatIcon"src="Bilder/Repeat.svg"class="normal"><img src="Bilder/repeat.svg"class="high"></button>
+                <button id="shuffleBtn"><img id="shuffleIcon"src="Bilder/Shuffle.svg"class="normal"><img src="Bilder/shuffle.svg"class="high"></button>
             </div>
-            <div class="volume-control" id="volumeControl">
-                <button id="muteUnmuteBtn" title="Stummschalten / Laut"><img id="volumeIcon" src="Volume.svg"></button>
+            <div class="volume-control"id="volumeControl">
+                <button id="muteUnmuteBtn"><img id="volumeIcon"src="Bilder/Mute.svg"class="normal"><img src="Bilder/mute.svg"class="high"></button>
                 <div class="volume-slider-wrapper">
-                    <div id="volumeTooltip" class="volume-tooltip">10%</div>
-                    <input type="range" id="volumeSlider" min="0" max="1" step="0.01">
+                    <div id="volumeTooltip"class="volume-tooltip">10%</div>
+                    <input type="range"id="volumeSlider"min="0"max="1"step="0.01">
                 </div>
             </div>
         </div>
