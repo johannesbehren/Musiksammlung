@@ -24,3 +24,11 @@ Eine Ansammlung von Minecraft Musik und Mods
 - Lautstärkeregler
   - Mit Mausrad oben/runter +/- 5%
   - Mit Pfeiltasten oben;rechts/runter;links +/- 1%
+
+--Theme--
+- Einstellung zur Farben Anzeige
+  - Optionen: Grün / Schwarz | Hoher Kontrast
+    - Grün / Schwarz: Das Originale
+    - Hoher Kontrast:
+      - Buchstaben: Weiß auf Schwarz
+      - Bilder: Schwarz auf Weiß
