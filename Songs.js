@@ -63,32 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const LF = 'lastFolder';
     const LS = 'lastSong';
     const LV = 'lastVolume';
-    const DT = 'Musik/More Musik Discs Pic/default.png';
-
-    // -------------------- Referenzen zu den wichtigen HTML-Elementen --------------------
-    const audioPlayer = document.getElementById('globalAudioPlayer');
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    const playPauseIcon = playPauseBtn.querySelector('img');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const repeatBtn = document.getElementById('repeatBtn');
-    const repeatIcon = document.getElementById('repeatIcon');
-    const shuffleBtn = document.getElementById('shuffleBtn');
-    const shuffleIcon = document.getElementById('shuffleIcon');
-    const progressBar = document.querySelector('.progress-bar');
-    const currentTimeSpan = document.querySelector('.current-time');
-    const durationSpan = document.querySelector('.duration');
-    const currentSongNameSpan = document.getElementById('currentSongName');
-    const currentSongThumbnail = document.getElementById('currentSongThumbnail');
-    const volumeSlider = document.getElementById('volumeSlider');
-    const muteUnmuteBtn = document.getElementById('muteUnmuteBtn');
-    const volumeIcon = document.getElementById('volumeIcon');
-    const folderListContainer = document.getElementById('folderList');
-    const mainSongList = document.getElementById('mainSongList');
-    const currentFolderTitle = document.getElementById('currentFolderTitle');
-    const folderNavWrapper = document.querySelector('.folder-nav-wrapper');
-    const volumeTooltip = document.getElementById('volumeTooltip');
-    const volumeSliderWrapper = document.querySelector('.volume-slider-wrapper');
+    const DT = 'Bilder/default.png';
     const PL = 'Bilder/Play.svg';
     const PA = 'Bilder/Pause.svg';
     const RE = 'Bilder/Repeat.svg';
@@ -100,8 +75,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const VL = 'Bilder/Low.svg';
     const VME = 'Bilder/Medium.svg';
     const VMA = 'Bilder/Max.svg';
-    
-    // -------------------- Zustandsvariablen --------------------
+    const audioPlayer = document.getElementById('globalAudioPlayer');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const repeatBtn = document.getElementById('repeatBtn');
+    const repeatIcon = document.getElementById('repeatIcon');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const shuffleIcon = document.getElementById('shuffleIcon');
+    const currentSongNameSpan = document.getElementById('currentSongName');
+    const currentSongThumbnail = document.getElementById('currentSongThumbnail');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const muteUnmuteBtn = document.getElementById('muteUnmuteBtn');
+    const volumeIcon = document.getElementById('volumeIcon');
+    const folderListContainer = document.getElementById('folderList');
+    const mainSongList = document.getElementById('mainSongList');
+    const currentFolderTitle = document.getElementById('currentFolderTitle');
+    const volumeTooltip = document.getElementById('volumeTooltip');
+    const favicon = document.getElementById('favicon');
+    const themeSelect = document.querySelector('select[name="turl"]');
+    const playPauseIcon = playPauseBtn.querySelector('img');
+    const progressBar = document.querySelector('.progress-bar');
+    const currentTimeSpan = document.querySelector('.current-time');
+    const durationSpan = document.querySelector('.duration');
+    const folderNavWrapper = document.querySelector('.folder-nav-wrapper');
+    const volumeSliderWrapper = document.querySelector('.volume-slider-wrapper');
     let currentPlayingSongItem = null;
     let currentFolderKey = localStorage.getItem(LF) || Object.keys(musicFolders)[0];
     let currentPlaylistSongs = [];
@@ -113,9 +111,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPlaylistIndex = -1;
     let progressBarInterval = null;
     let lastKnownVolume = parseFloat(localStorage.getItem(LV)) || 0.1;
-
     audioPlayer.volume = lastKnownVolume;
     volumeSlider.value = lastKnownVolume;
+
+    // -------------------- Theme Änderung --------------------
+    themeSelect.addEventListener('change', (e) => {
+        const currentTheme = e.target.value;
+
+        // 1. Theme-Attribut für CSS setzen (wie in Lösung A)
+        document.body.dataset.theme = currentTheme; 
+
+        // 2. Favicon dynamisch austauschen
+        if (currentTheme === 'high') {favicon.href = 'Bilder/blank.svg';}
+        else{favicon.href = 'Bilder/Blank.svg';}
+
+        // Falls du Lösung A für die restlichen Buttons nutzt:
+        if (typeof updateAllIcons === 'function') {updateAllIcons();}
+    });
 
     // -------------------- Hilfsfunktionen --------------------
     const formatTime = (seconds) => {
