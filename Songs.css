@@ -1,13 +1,27 @@
 /* Globale Stile und Farben (YT Music-ähnlich) */
-:root{
-    --bg-color:#000000;
-    --player-color:#000000;
-    --sidebar-color:#000000;
-    --accent-color:#00ff00;
-    --text-color:#00ff00;
-    --secondary-text-color:#00ff00;
-    --hover-color:#00ff0077;
-    --activ:#085012;}
+:root:has(option[value="normal"]:checked){
+--bg-color:#000000;
+--player-color:#000000;
+--sidebar-color:#000000;
+--accent-color:#00ff00;
+--text-color:#00ff00;
+--secondary-text-color:#00ff00;
+--hover-color:#00ff0077;
+--activ:#00ff0055;}
+:root:has(option[value="normal"]:checked) .normal{display:block;}
+:root:has(option[value="high"]:checked){
+--bg-color:#000000;
+--player-color:#000000;
+--sidebar-color:#000000;
+--accent-color:#ffffff;
+--text-color:#ffffff;
+--secondary-text-color:#ffffff;
+--hover-color:#ffffff77;
+--activ:#ffffff55;}
+:root:has(option[value="high"]:checked) .high{display:block;}
+button img{display:none;}
+select{color:var(--text-color);background-color:var(--bg-color);border:2px solid var(--text-color);border-radius:4px;display:inline-block;position:absolute;right:10px;margin-top:0;font-size:1.8em;cursor:pointer;}
+select:hover{background-color:var(--hover-color);color:var(--bg-color);}
 body{font-family:'Minecraft';background-color:var(--bg-color);color:var(--text-color);margin:0;padding-bottom:90px;}
 .app-container{display:grid;grid-template-columns:200px 1fr;height:calc(100vh - 90px);}
 .sidebar{background-color:var(--sidebar-color);padding:12px;overflow-y:auto;border-right:1px solid var(--hover-color);}
@@ -45,6 +59,8 @@ body{font-family:'Minecraft';background-color:var(--bg-color);color:var(--text-c
 #playPauseBtn, #muteUnmuteBtn{min-width:35px;min-height:35px;}
 #repeatBtn{font-size:1.2em;}
 .volume-control{display:flex;align-items:center;gap:10px;}
+.volume-control button img{width:25px;height:25px;vertical-align:middle;}
+.volume-control button{background-color:transparent;color:var(--secondary-text-color);border:none;padding:5px;}
 .volume-slider-wrapper{position:relative;width:100px;}
 .volume-tooltip{position:absolute;top:-20px;padding:3px 6px;background-color:var(--accent-color);color:var(--bg-color);font-size:0.7em;font-weight:bold;border-radius:3px;white-space:nowrap;z-index:10;opacity:1;left:50%;transform:translateX(-50%);}
 #volumeSlider{width:100px;height:4px;-webkit-appearance:none;appearance:none;background:var(--hover-color);border-radius:5px;outline:none;cursor:pointer;}
