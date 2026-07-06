@@ -592,5 +592,25 @@ document.addEventListener('DOMContentLoaded', () => {
             updateDocumentTitle();
         });
     };
+
+    // -------------------- Theme / Hoher Kontrast --------------------
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const applyTheme = (isHighContrast) => {
+        if (isHighContrast) {
+            document.body.classList.add('high-contrast');
+            themeToggleBtn.textContent = 'Hoher Kontrast: An';
+        }
+        else{
+            document.body.classList.remove('high-contrast');
+            themeToggleBtn.textContent = 'Hoher Kontrast: Aus';
+        }
+    };
+    let isHighContrast = localStorage.getItem('highContrast') === 'true';
+    applyTheme(isHighContrast);
+    themeToggleBtn.addEventListener('click', () => {
+        isHighContrast = !isHighContrast;
+        localStorage.setItem('highContrast', isHighContrast);
+        applyTheme(isHighContrast);
+    });
     initializeApp();
 });
