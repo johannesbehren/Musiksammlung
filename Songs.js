@@ -92,8 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainSongList = document.getElementById('mainSongList');
     const currentFolderTitle = document.getElementById('currentFolderTitle');
     const volumeTooltip = document.getElementById('volumeTooltip');
-    const favicon = document.getElementById('favicon');
-    const themeSelect = document.querySelector('select[name="turl"]');
     const playPauseIcon = playPauseBtn.querySelector('img');
     const progressBar = document.querySelector('.progress-bar');
     const currentTimeSpan = document.querySelector('.current-time');
@@ -113,21 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastKnownVolume = parseFloat(localStorage.getItem(LV)) || 0.1;
     audioPlayer.volume = lastKnownVolume;
     volumeSlider.value = lastKnownVolume;
-
-    // -------------------- Theme Änderung --------------------
-    themeSelect.addEventListener('change', (e) => {
-        const currentTheme = e.target.value;
-
-        // 1. Theme-Attribut für CSS setzen (wie in Lösung A)
-        document.body.dataset.theme = currentTheme; 
-
-        // 2. Favicon dynamisch austauschen
-        if (currentTheme === 'high') {favicon.href = 'Bilder/blank.svg';}
-        else{favicon.href = 'Bilder/Blank.svg';}
-
-        // Falls du Lösung A für die restlichen Buttons nutzt:
-        if (typeof updateAllIcons === 'function') {updateAllIcons();}
-    });
 
     // -------------------- Hilfsfunktionen --------------------
     const formatTime = (seconds) => {
