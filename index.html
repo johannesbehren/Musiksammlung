@@ -1,34 +1,29 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <link id="favicon"rel="icon"href="Musik/More Musik Discs Pic/Blank.svg" type="image/svg">
+    <link rel="icon" href="Bilder/Blank.svg"type="image/svg">
     <meta charset="UTF-8">
     <meta name="viewport"content="width=device-width,initial-scale=1.0">
     <title>Musiksammlung (YT Style)</title>
-    <link rel="stylesheet" href="./Songs.css">
+    <link rel="stylesheet"href="./Songs.css">
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
             <h3>Meine Sammlungen</h3>
+            <button id="themeToggleBtn" class="theme-toggle-btn">Hoher Kontrast: Aus</button>
             <div class="folder-nav-wrapper">
-                <ul class="folder-list" id="folderList"></ul>
+                <ul class="folder-list"id="folderList"></ul>
             </div>
         </aside>
-
         <main class="main-content">
             <h2 id="currentFolderTitle">Wähle eine Sammlung</h2>
-            <select name="turl">
-                <option value="normal">Grün / Schwarz</option>
-                <option value="high" style="background-color:black;color:white;">Hoher Kontrast</option>
-            </select>
-            <ul class="song-list" id="mainSongList"></ul>
+            <ul class="song-list"id="mainSongList"></ul>
         </main>
     </div>
-
     <div class="custom-audio-player">
         <div class="progress-bar-container">
-            <input type="range" class="progress-bar" value="0" min="0" max="100">
+            <input type="range"class="progress-bar"value="0"min="0"max="100">
             <div class="time-display">
                 <span class="current-time">0:00</span>
                 /
@@ -41,14 +36,14 @@
                 <span id="currentSongName">Kein Song ausgewählt</span>
             </div>
             <div class="controls">
-                <button id="prevBtn"><img src="Bilder/Previous.svg"class="normal"><img src="Bilder/previous.svg"class="high"></button>
-                <button id="playPauseBtn"><img src="Bilder/Play.svg"class="normal"><img src="Bilder/play.svg"class="high"></button>
-                <button id="nextBtn"><img src="Bilder/Next.svg"class="normal"><img src="Bilder/next.svg"class="high"></button>
-                <button id="repeatBtn"><img id="repeatIcon"src="Bilder/Repeat.svg"class="normal"><img src="Bilder/repeat.svg"class="high"></button>
-                <button id="shuffleBtn"><img id="shuffleIcon"src="Bilder/Shuffle.svg"class="normal"><img src="Bilder/shuffle.svg"class="high"></button>
+                <button id="prevBtn"><img src="Bilder/Previous.svg"></button>
+                <button id="playPauseBtn"><img src="Bilder/Play.svg"></button>
+                <button id="nextBtn"><img src="Bilder/Next.svg"></button>
+                <button id="repeatBtn"><img id="repeatIcon"src="Bilder/Repeat.svg"></button>
+                <button id="shuffleBtn"><img id="shuffleIcon"src="Bilder/Shuffle.svg"></button>
             </div>
             <div class="volume-control"id="volumeControl">
-                <button id="muteUnmuteBtn"><img id="volumeIcon"src="Bilder/Mute.svg"class="normal"><img src="Bilder/mute.svg"class="high"></button>
+                <button id="muteUnmuteBtn"><img id="volumeIcon"src="Bilder/Mute.svg"></button>
                 <div class="volume-slider-wrapper">
                     <div id="volumeTooltip"class="volume-tooltip">10%</div>
                     <input type="range"id="volumeSlider"min="0"max="1"step="0.01">
