@@ -74,6 +74,7 @@ body.high-contrast .volume-control button img{filter:invert(1)brightness(0); }
 @media(max-width:768px){
 :root{font-size:0.8em;}
 .volume-control{display:none;}
-#currentSongName{display:none;}
-.current-song-info{min-width:0;margin-right:auto;}
 .controls{gap:15px;justify-content:center;}}
+@media(max-width:480px){
+#currentSongName{display:none;}
+.current-song-info{min-width:0;margin-right:auto;}}
