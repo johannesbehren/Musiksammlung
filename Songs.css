@@ -50,14 +50,21 @@ body.high-contrast .volume-control button img{filter:invert(1)brightness(0); }
 .player-controls-container{display:flex;justify-content:space-between;align-items:center;width:90%;}
 .current-song-info{display:flex;align-items:center;gap:10px;min-width:200px;transition: transform 0.3s ease-in-out;}
 .current-song-info:hover{transform:scale(1.2)translateX(15px)translateY(-4px);}
-.song-thumbnail-player{width:50px;height:50px;border-radius:4px;object-fit:cover;}
-#currentSongName{color:var(--text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-weight:bold;}
+.song-thumbnail-player{width:50px;height:50px;border-radius:4px;object-fit:cover;flex-shrink:0;}
+.song-name-stack{display:flex;flex-direction:column;gap:1px;min-width:0;}
+#currentSongName, .related-song{font-size:16px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;}
+#currentSongName{color:var(--text-color);font-weight:bold;}
+.related-song{color:var(--hover-color);font-weight:normal;}
+.previous-song-name::before{content:'◀ ';}
+.next-song-name::before{content:'▶ ';}
 .controls{display:flex;align-items:center;gap:25px;flex-shrink:0;justify-content:center;flex-grow:1;}
 .controls button img{width:25px;height:25px;vertical-align:middle;}
 .controls button{background-color:transparent;color:var(--secondary-text-color);border:none;padding:5px;}
 .controls button:hover{color:var(--text-color);}
 #playPauseBtn, #muteUnmuteBtn{min-width:35px;min-height:35px;}
 #repeatBtn{font-size:1.2em;}
+button:disabled{opacity:0.45;cursor:not-allowed;}
+.controls button.end-playlist img{color:var(--hover-color)} 
 .volume-control{display:flex;align-items:center;gap:10px;}
 .volume-control button img{width:25px;height:25px;vertical-align:middle;}
 .volume-control button{background-color:transparent;color:var(--secondary-text-color);border:none;padding:5px;}
@@ -74,7 +81,10 @@ body.high-contrast .volume-control button img{filter:invert(1)brightness(0); }
 @media(max-width:768px){
 :root{font-size:0.8em;}
 .volume-control{display:none;}
-.controls{gap:15px;justify-content:center;}}
+.controls{gap:15px;justify-content:right;}
+#currentSongName, .related-song{font-size:14px;}
+}
 @media(max-width:480px){
-#currentSongName{display:none;}
-.current-song-info{min-width:0;margin-right:auto;}}
+#currentSongName, .related-song{display:none;}
+.current-song-info{min-width:0;margin-right:auto;}
+}
