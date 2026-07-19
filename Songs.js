@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'fnaf': {
             songPath: 'Musik/Fnaf/',
             imagePath: 'Musik/Fnaf Pic/',
-            songs: ['aftershow.ogg', 'another_five_nights.ogg', 'baloons.ogg', 'balloralullaby.ogg', 'behind_the_mask.ogg', 'below_the_surface.ogg', 'break_my_mind.ogg', 'can_you_survive.ogg', 'count_the_ways.ogg', 'dance_to_forget.ogg', 'darkest_desire.ogg', 'darkest_desire2.ogg', 'die_in_a_fire.ogg', 'dream_your_dream.ogg', 'everybody.ogg', 'fetch.ogg', 'five_long_nights.ogg', 'five_more_nights.ogg', 'fnaf_big_band.ogg', 'fnaf1_german.ogg', 'fnaf1_song.ogg', 'fnaf3.ogg', 'follow_me.ogg', 'funtime_dancefloor.ogg', 'get_away.ogg', 'i_am_the_purple_guy.ogg', 'i_cant_fix_you.ogg', 'imitation.ogg', 'into_the_pit.ogg', 'its_been_so_long.ogg', 'its_me.ogg', 'its_time_to_die.ogg', 'jackies_box.ogg', 'join_us_for_a_bite.ogg', 'labyrinth.ogg','left_behind.ogg', 'lite_it_or_not.ogg', 'lonely_freddy.ogg', 'Make_your_move.ogg', 'never_be_alone.ogg', 'oogie_boogies.ogg', 'puppet_song.ogg', 'shadow_bonnie_lullaby.ogg', 'stay_calm.ogg', 'step_on_up.ogg', 'stuck_inside.ogg', 'survive_the_night.ogg', 'this_comes_from_inside.ogg', 'to_be_beautiful.ogg', 'we_are_the_phantoms.ogg', 'we_know_what_scares_you.ogg', 'you_cant_hide.ogg']
+            songs: ['aftershow.ogg', 'another_five_nights.ogg', 'balloralullaby.ogg', 'baloons.ogg', 'behind_the_mask.ogg', 'below_the_surface.ogg', 'break_my_mind.ogg', 'bringing_us_home.ogg', 'can_you_survive.ogg', 'count_the_ways.ogg', 'dance_to_forget.ogg', 'darkest_desire.ogg', 'darkest_desire2.ogg', 'die_in_a_fire.ogg', 'dream_your_dream.ogg', 'everybody.ogg', 'fetch.ogg', 'five_long_nights.ogg', 'five_more_nights.ogg', 'fnaf_big_band.ogg', 'fnaf1_german.ogg', 'fnaf1_song.ogg', 'fnaf3.ogg', 'follow_me.ogg', 'funtime_dancefloor.ogg', 'get_away.ogg', 'i_am_the_purple_guy.ogg', 'i_cant_fix_you.ogg', 'imitation.ogg', 'into_the_pit.ogg', 'its_been_so_long.ogg', 'its_me.ogg', 'its_time_to_die.ogg', 'jackies_box.ogg', 'join_us_for_a_bite.ogg', 'labyrinth.ogg','left_behind.ogg', 'lite_it_or_not.ogg', 'lonely_freddy.ogg', 'Make_your_move.ogg', 'never_be_alone.ogg', 'oogie_boogies.ogg', 'puppet_song.ogg', 'shadow_bonnie_lullaby.ogg', 'stay_calm.ogg', 'step_on_up.ogg', 'stuck_inside.ogg', 'survive_the_night.ogg', 'this_comes_from_inside.ogg', 'to_be_beautiful.ogg', 'we_are_the_phantoms.ogg', 'we_know_what_scares_you.ogg', 'you_cant_hide.ogg']
         },
         'minecraft': {
             songPath: 'Musik/Minecraft/',
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const LF = 'lastFolder';
     const LS = 'lastSong';
     const LV = 'lastVolume';
-    const DT = 'Bilder/default.png';
+    const DT = 'Bilder/Default.png';
     const PL = 'Bilder/Play.svg';
     const PA = 'Bilder/Pause.svg';
     const RE = 'Bilder/Repeat.svg';
@@ -84,6 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const shuffleBtn = document.getElementById('shuffleBtn');
     const shuffleIcon = document.getElementById('shuffleIcon');
     const currentSongNameSpan = document.getElementById('currentSongName');
+    const previousSongName = document.getElementById('previousSongName');
+    const nextSongName = document.getElementById('nextSongName');
     const currentSongThumbnail = document.getElementById('currentSongThumbnail');
     const volumeSlider = document.getElementById('volumeSlider');
     const muteUnmuteBtn = document.getElementById('muteUnmuteBtn');
@@ -108,6 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isShuffleActive = false;
     let currentPlaylistIndex = -1;
     let progressBarInterval = null;
+    const HISTORY_KEY = 'songHistory';
+    let songHistory = [];
+    let historyIndex = -1;
+    let lastNextSongPath = null;
     let lastKnownVolume = parseFloat(localStorage.getItem(LV)) || 0.1;
     audioPlayer.volume = lastKnownVolume;
     volumeSlider.value = lastKnownVolume;
@@ -129,15 +135,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateVolumeIcon = () => {
         const currentVolume = parseFloat(audioPlayer.volume);
         const percentage = Math.round(currentVolume * 100);
-        if (audioPlayer.muted || currentVolume < 0.01) {volumeIcon.src = M; audioPlayer.volume = 0;}
-        else if (currentVolume >= 0.80) {volumeIcon.src = VMA;}
-        else if (currentVolume >= 0.40) {volumeIcon.src = VME;}
-        else {volumeIcon.src = VL;}
+        if(audioPlayer.muted || currentVolume < 0.01){volumeIcon.src = M; audioPlayer.volume = 0;}
+        else if(currentVolume >= 0.80){volumeIcon.src = VMA;}
+        else if(currentVolume >= 0.40){volumeIcon.src = VME;}
+        else{volumeIcon.src = VL;}
         volumeTooltip.textContent = `${percentage}%`;
-        if (currentVolume > 0 && !audioPlayer.muted) {
-            lastKnownVolume = currentVolume;
-            localStorage.setItem(LV, currentVolume);
-        }
+        if(currentVolume > 0 && !audioPlayer.muted){lastKnownVolume = currentVolume; localStorage.setItem(LV, currentVolume);}
     };
     const updateVolumeTooltip = () => {
         const value = volumeSlider.value;
@@ -154,25 +157,78 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const step = 0.05;
         let newVolume = parseFloat(audioPlayer.volume);
-        if (event.deltaY < 0) {newVolume = Math.min(1, newVolume + step);}
-        else {newVolume = Math.max(0, newVolume - step);}
+        if(event.deltaY < 0){newVolume = Math.min(1, newVolume + step);}
+        else{newVolume = Math.max(0, newVolume - step);}
         audioPlayer.volume = newVolume;
         volumeSlider.value = newVolume;
         updateVolumeIcon();
         updateVolumeTooltip();
     }, {passive: false });
+    const loadHistory = () => {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        if(!raw){songHistory = []; historyIndex = -1; return;}
+        try{
+            const parsed = JSON.parse(raw);
+            if(Array.isArray(parsed)){
+                songHistory = parsed.slice(-25);
+                historyIndex = songHistory.length - 1;
+            }
+        }
+        catch(error){
+            songHistory = [];
+            historyIndex = -1;
+        }
+    };
+    const saveHistory = () => {
+        if(songHistory.length > 25){songHistory = songHistory.slice(-25);}
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(songHistory));
+    };
+    const updateHistoryButtons = () => {prevBtn.disabled = historyIndex <= 0;};
+    const getHistoryEntry = (index) => songHistory[index] || null;
+    const shufflePlaylistWithCurrentFirst = (playlist, currentItem, previousNextPath = null) => {
+        if(!currentItem){return shuffleArray([...playlist]);}
+        const remaining = playlist.filter(item => item.dataset.path !== currentItem.dataset.path);
+        const shuffled = shuffleArray(remaining);
+        if(previousNextPath && shuffled.length > 1 && shuffled[0]?.dataset.path === previousNextPath){
+            const alternateIndex = shuffled.findIndex(item => item.dataset.path !== previousNextPath);
+            if(alternateIndex > 0){
+                [shuffled[0], shuffled[alternateIndex]] = [shuffled[alternateIndex], shuffled[0]];
+            }
+        }
+        return [currentItem, ...shuffled];
+    };
+    const getNextSongFromPlaylist = () => {
+        if(!currentPlayingSongItem || activePlaybackPlaylist.length === 0){return null;}
+        const currentIndexInPlaylist = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
+        if(currentIndexInPlaylist === -1){return null;}
+        let nextIndex = currentIndexInPlaylist + 1;
+        if(nextIndex >= activePlaybackPlaylist.length){
+            if(repeatMode === 'all'){ nextIndex = 0;}
+            else{return null;}
+        }
+        return activePlaybackPlaylist[nextIndex] || null;
+    };
+    const updateNavigationButtons = () => {
+        const nextItem = getNextSongFromPlaylist();
+        const hasNextSong = nextItem !== null;
+        const isEndOfPlaylist = !hasNextSong && !isShuffleActive && repeatMode === 'off' && currentPlayingSongItem !== null;
+        nextBtn.disabled = !hasNextSong;
+        nextBtn.classList.toggle('end-playlist', isEndOfPlaylist);
+        updateHistoryButtons();
+    };
+    const updatePreviousNextSongInfo = () => {
+        const nextItem = getNextSongFromPlaylist();
+        previousSongName.textContent = getHistoryEntry(historyIndex - 1)?.name || 'Kein vorheriger Song';
+        nextSongName.textContent = nextItem?.dataset.name || 'Kein nächster Song';
+        lastNextSongPath = nextItem?.dataset.path || null;
+        updateNavigationButtons();
+    };
 
     // -------------------- Navigations-Logik (Fade-Steuerung) --------------------
     const updateFadeEffect = () => {
-        if (window.innerWidth > 768) {
-            folderNavWrapper.classList.remove('show-fade-left', 'show-fade-right');
-            return;
-        }
+        if(window.innerWidth > 768){folderNavWrapper.classList.remove('show-fade-left', 'show-fade-right'); return;}
         const isScrollable = folderListContainer.scrollWidth > folderListContainer.clientWidth;
-        if (!isScrollable) {
-            folderNavWrapper.classList.remove('show-fade-left', 'show-fade-right');
-            return;
-        }
+        if(!isScrollable){folderNavWrapper.classList.remove('show-fade-left', 'show-fade-right'); return;}
         const currentScroll = folderListContainer.scrollLeft;
         const maxScroll = folderListContainer.scrollWidth - folderListContainer.clientWidth;
         const tolerance = 20;
@@ -181,40 +237,92 @@ document.addEventListener('DOMContentLoaded', () => {
         folderNavWrapper.classList.toggle('show-fade-left', showLeftFade);
         folderNavWrapper.classList.toggle('show-fade-right', showRightFade);
     };
-
     folderListContainer.addEventListener('scroll', updateFadeEffect);
     window.addEventListener('resize', updateFadeEffect);
+    const shuffleArray = (array) => {
+        const shuffled = [...array];
+        for(let i = shuffled.length - 1; i > 0; i--){
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    };
     const updateRepeatMode = () => {
         repeatIcon.src = repeatMode === 'one' ? R1 : repeatMode === 'all' ? REA : RE;
         repeatBtn.classList.toggle('active-repeat', repeatMode !== 'off');
         repeatBtn.classList.toggle('active-repeat-one', repeatMode === 'one');
         audioPlayer.loop = repeatMode === 'one';
     };
-    const shuffleArray = (array) => {
-        const shuffled = [...array];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        return shuffled;
-    };
     const updateShuffleMode = () => {
-        if (isShuffleActive) {
-            activePlaybackPlaylist = shuffleArray([...playbackPlaylistOrdered]);
-            if (currentPlayingSongItem) {
-                const currentIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
-                if (currentIndex > 0) {
-                    const [currentItem] = activePlaybackPlaylist.splice(currentIndex, 1);
-                    activePlaybackPlaylist.unshift(currentItem);
-                }
+        if(isShuffleActive){
+            activePlaybackPlaylist = shufflePlaylistWithCurrentFirst([...playbackPlaylistOrdered], currentPlayingSongItem, lastNextSongPath);
+        }
+        else{
+            activePlaybackPlaylist = [...playbackPlaylistOrdered];
+            if(currentPlayingSongItem){
+                currentPlaylistIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
             }
         }
-        else {activePlaybackPlaylist = [...playbackPlaylistOrdered];}
     };
+    const updateHistoryWithSongItem = (songItem) => {
+        const songData = {
+            path: songItem.dataset.path,
+            name: songItem.dataset.name,
+            image: songItem.dataset.imagePath || DT
+        };
+        if(historyIndex < songHistory.length - 1){
+            const forwardEntry = songHistory[historyIndex + 1];
+            if(forwardEntry && forwardEntry.path === songData.path){
+                historyIndex += 1;
+                saveHistory();
+                return;
+            }
+            songHistory = songHistory.slice(0, historyIndex + 1);
+        }
+        const currentEntry = getHistoryEntry(historyIndex);
+        if(!currentEntry || currentEntry.path !== songData.path){
+            songHistory.push(songData);
+            historyIndex = songHistory.length - 1;
+        }
+        saveHistory();
+    };
+    const playHistorySong = async (historyItem) => {
+        const targetFolderKey = findFolderKeyByPath(historyItem.path);
+        if(targetFolderKey && targetFolderKey !== currentFolderKey){
+            const title = formatFolderTitle(targetFolderKey);
+            await loadFolderSongs(targetFolderKey, title);
+        }
+        const songItem = document.querySelector(`.song-item[data-path="${historyItem.path}"]`);
+        if(songItem){
+            currentPlayingSongItem = songItem;
+            document.querySelectorAll('.song-item.active').forEach(item => item.classList.remove('active'));
+            songItem.classList.add('active');
+        }
+        const songPath = historyItem.path;
+        const songName = historyItem.name;
+        const songImage = historyItem.image || DT;
+        currentSongNameSpan.textContent = songName;
+        currentSongThumbnail.src = songImage;
+        audioPlayer.src = songPath;
+        audioPlayer.load();
+        audioPlayer.play().then(() => startProgressBarUpdate()).catch(() => {});
+        localStorage.setItem(LS, JSON.stringify({ path: songPath, name: songName, image: songImage }));
+        updatePreviousNextSongInfo();
+        updateDocumentTitle();
+    };
+    const goBackInHistory = async () => {
+        if(historyIndex <= 0){return;}
+        historyIndex -= 1;
+        saveHistory();
+        const historyItem = getHistoryEntry(historyIndex);
+        if(!historyItem){return;}
+        await playHistorySong(historyItem);
+    };
+
     // -------------------- Rendering-Funktionen (mit Fade-Update) --------------------
     const renderFolders = () => {
         folderListContainer.innerHTML = '';
-        for (const [key, data] of Object.entries(musicFolders)) {
+        for(const [key] of Object.entries(musicFolders)){
             const folderTitle = key.replace(/-/g, ' ').split(' ')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
@@ -224,26 +332,23 @@ document.addEventListener('DOMContentLoaded', () => {
             li.dataset.folderKey = key;
             li.addEventListener('click', () => {
                 loadFolderSongs(key, folderTitle);
-                li.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+                li.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
             });
             folderListContainer.appendChild(li);
         }
         updateFadeEffect();
     };
-
     const loadFolderSongs = async (folderKey, folderTitle) => {
         currentFolderKey = folderKey;
         localStorage.setItem(LF, folderKey);
-        document.querySelectorAll('.folder-item').forEach(item => {
-            item.classList.remove('active-folder');
-        });
+        document.querySelectorAll('.folder-item').forEach(item => {item.classList.remove('active-folder');});
         const activeFolderItem = document.querySelector(`.folder-item[data-folder-key="${folderKey}"]`);
-        if (activeFolderItem) {activeFolderItem.classList.add('active-folder');}
+        if(activeFolderItem){activeFolderItem.classList.add('active-folder');}
         currentFolderTitle.textContent = folderTitle;
         mainSongList.innerHTML = '';
         const paths = musicFolders[folderKey];
         const songs = paths.songs;
-        for (const songName of songs) {
+        for (const songName of songs){
             const li = document.createElement('li');
             li.classList.add('song-item');
             li.dataset.path = `${paths.songPath}${songName}`;
@@ -252,49 +357,50 @@ document.addEventListener('DOMContentLoaded', () => {
             li.dataset.columnId = folderKey;
             li.title = cleanSongName;
             let finalImagePath = '';
-            if (paths.imagePath && folderKey) {
+            if(paths.imagePath && folderKey){
                 const songImage = document.createElement('img');
                 songImage.classList.add('song-thumbnail');
                 const potentialImagePath = `${paths.imagePath}${songName.replace(/\.(ogg|mp3)$/, '')}.png`;
                 finalImagePath = DT;
                 const imageExists = await checkImageExists(potentialImagePath);
-                if (imageExists) {finalImagePath = potentialImagePath;}
+                if(imageExists){finalImagePath = potentialImagePath;}
                 songImage.src = finalImagePath;
                 li.dataset.imagePath = finalImagePath;
                 li.appendChild(songImage);
             }
-            else {li.dataset.imagePath = '';}
+            else{li.dataset.imagePath = '';}
             const span = document.createElement('span');
             span.textContent = cleanSongName;
             li.appendChild(span);
-            
-            li.addEventListener('click', () => {
-                handleSongClick(li);
-            });
+            li.addEventListener('click', () => {handleSongClick(li);});
             mainSongList.appendChild(li);
         }
         currentPlaylistSongs = Array.from(mainSongList.children);
-        if (playbackPlaylistFolderKey === folderKey) {
+        if(playbackPlaylistFolderKey === folderKey){
             playbackPlaylistOrdered = [...currentPlaylistSongs];
-            if (isShuffleActive) {updateShuffleMode();}
-            else {activePlaybackPlaylist = [...playbackPlaylistOrdered];}
+            if(isShuffleActive){updateShuffleMode();}
+            else{activePlaybackPlaylist = [...playbackPlaylistOrdered];}
         }
         const lastSongData = localStorage.getItem(LS);
-        if (lastSongData) {
+        if(lastSongData){
             const {path} = JSON.parse(lastSongData);
             const lastPlayedItem = document.querySelector(`.song-item[data-path="${path}"]`);
-            if (lastPlayedItem && lastPlayedItem.dataset.columnId === folderKey) {
+            if(lastPlayedItem && lastPlayedItem.dataset.columnId === folderKey){
                 lastPlayedItem.classList.add('active');
                 currentPlayingSongItem = lastPlayedItem;
-                currentPlaylistIndex = currentPlaylistSongs.indexOf(lastPlayedItem);
+                activePlaybackPlaylist = [...currentPlaylistSongs];
+                playbackPlaylistFolderKey = folderKey;
+                if(isShuffleActive){updateShuffleMode();}
+                currentPlaylistIndex = activePlaybackPlaylist.indexOf(lastPlayedItem);
             }
         }
+        updatePreviousNextSongInfo();
         updateFadeEffect();
     };
 
     // -------------------- Navigation to currently playing song --------------------
     const findFolderKeyByPath = (songPath) => {
-        for (const [key, data] of Object.entries(musicFolders)) {if (songPath.startsWith(data.songPath)) {return key;}}
+        for(const [key, data] of Object.entries(musicFolders)){if(songPath.startsWith(data.songPath)){return key;}}
         return null;
     };
     const formatFolderTitle = (key) => {
@@ -303,119 +409,92 @@ document.addEventListener('DOMContentLoaded', () => {
             .join(' ');
     };
     const scrollElementToViewportTop = (el) => {
-        if (!el) return;
-        if (mainSongList) {
+        if(!el) return;
+        if(mainSongList){
             const container = mainSongList.parentElement;
-            if (container && container.contains(el)) {
+            if(container && container.contains(el)){
                 el.scrollIntoView({behavior: 'smooth', block: 'start'});
                 return;
             }
         }
-        el.scrollIntoView({behavior: 'smooth', block: 'start'});
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
     const navigateToPlayingSong = () => {
         const lastSongData = localStorage.getItem(LS);
         let songPath = null;
-        if (lastSongData) {try {songPath = JSON.parse(lastSongData).path;} catch (e) {songPath = null;}}
-        if (!songPath && currentPlayingSongItem) {songPath = currentPlayingSongItem.dataset.path;}
-        if (!songPath) return;
+        if(lastSongData){try{songPath = JSON.parse(lastSongData).path;} catch(e){songPath = null;}}
+        if(!songPath && currentPlayingSongItem){songPath = currentPlayingSongItem.dataset.path;}
+        if(!songPath) return;
         const targetFolderKey = findFolderKeyByPath(songPath);
         const scrollToSongInCurrentDOM = () => {
             const all = Array.from(document.querySelectorAll('.song-item'));
             const songEl = all.find(el => el.dataset.path === songPath);
-            if (!songEl) return;
+            if(!songEl) return;
             document.querySelectorAll('.song-item.active').forEach(i => i.classList.remove('active'));
             songEl.classList.add('active');
             scrollElementToViewportTop(songEl);
         };
-        if (targetFolderKey && targetFolderKey !== currentFolderKey) {
+        if(targetFolderKey && targetFolderKey !== currentFolderKey){
             const title = formatFolderTitle(targetFolderKey);
             loadFolderSongs(targetFolderKey, title).then(() => {setTimeout(scrollToSongInCurrentDOM, 25);});
         }
-        else {setTimeout(scrollToSongInCurrentDOM, 25);}
+        else{setTimeout(scrollToSongInCurrentDOM, 25);}
     };
     currentSongNameSpan.style.cursor = 'pointer';
     currentSongNameSpan.title = 'Zur aktuellen Wiedergabe springen';
     currentSongNameSpan.addEventListener('click', navigateToPlayingSong);
+    currentSongThumbnail.style.cursor = 'pointer';
+    currentSongThumbnail.title = 'Zur aktuellen Wiedergabe springen';
+    currentSongThumbnail.addEventListener('click', navigateToPlayingSong);
 
     // -------------------- Player-Logik --------------------
     const togglePlayPause = () => {
-        if (audioPlayer.paused) {
-            if (audioPlayer.src) {
-                audioPlayer.play();
-                playPauseIcon.src = PA;
-                startProgressBarUpdate();
-            }
-        }
-        else {
-            audioPlayer.pause();
-            playPauseIcon.src = PL;
-            stopProgressBarUpdate();
-        }
+        if(audioPlayer.paused){if(audioPlayer.src){audioPlayer.play(); playPauseIcon.src = PA; startProgressBarUpdate();} }
+        else{audioPlayer.pause(); playPauseIcon.src = PL; stopProgressBarUpdate();}
         updateDocumentTitle();
     };
     const playNextSong = () => {
-        if (activePlaybackPlaylist.length === 0 && playbackPlaylistOrdered.length > 0) {
-            activePlaybackPlaylist = [...playbackPlaylistOrdered];
-        }
-        if (activePlaybackPlaylist.length === 0) return;
+        if(activePlaybackPlaylist.length === 0 && playbackPlaylistOrdered.length > 0){activePlaybackPlaylist = [...playbackPlaylistOrdered];}
+        if(activePlaybackPlaylist.length === 0) return;
         currentPlaylistIndex = activePlaybackPlaylist.indexOf(currentPlayingSongItem);
-        if (currentPlaylistIndex === -1 && currentPlayingSongItem) {
-            currentPlaylistIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
-        }
-        if (currentPlaylistIndex === -1) {currentPlaylistIndex = 0;}
+        if(currentPlaylistIndex === -1 && currentPlayingSongItem){currentPlaylistIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);}
+        if(currentPlaylistIndex === -1){currentPlaylistIndex = 0;}
         let nextIndex = currentPlaylistIndex + 1;
-        if (nextIndex >= activePlaybackPlaylist.length) {
-            if (repeatMode === 'all') {nextIndex = 0;}
-            else {return;}
+        if(nextIndex >= activePlaybackPlaylist.length){
+            if(repeatMode === 'all'){nextIndex = 0;}
+            else{return;}
         }
         handleSongClickFromPlaylist(activePlaybackPlaylist[nextIndex]);
     };
     const playPrevSong = () => {
-        if (activePlaybackPlaylist.length === 0 && playbackPlaylistOrdered.length > 0) {
-            activePlaybackPlaylist = [...playbackPlaylistOrdered];
-        }
-        if (activePlaybackPlaylist.length === 0) return;
-        currentPlaylistIndex = activePlaybackPlaylist.indexOf(currentPlayingSongItem);
-        if (currentPlaylistIndex === -1 && currentPlayingSongItem) {
-            currentPlaylistIndex = activePlaybackPlaylist.findIndex(item => item.dataset.path === currentPlayingSongItem.dataset.path);
-        }
-        if (currentPlaylistIndex === -1) {currentPlaylistIndex = 0;}
-        let prevIndex = currentPlaylistIndex - 1;
-        if (prevIndex < 0) {
-            if (repeatMode === 'all') {prevIndex = activePlaybackPlaylist.length - 1;}
-            else {return;}
-        }
-        handleSongClickFromPlaylist(activePlaybackPlaylist[prevIndex]);
+        goBackInHistory();
     };
     const handleSongClick = (songItem) => {
-        document.querySelectorAll('.song-item.active').forEach(item => {
-            item.classList.remove('active');
-        });
+        document.querySelectorAll('.song-item.active').forEach(item => {item.classList.remove('active');});
         songItem.classList.add('active');
         playbackPlaylistOrdered = [...currentPlaylistSongs];
         playbackPlaylistFolderKey = currentFolderKey;
         activePlaybackPlaylist = [...playbackPlaylistOrdered];
         currentPlayingSongItem = songItem;
-        if (isShuffleActive) {updateShuffleMode();}
+        if(isShuffleActive){updateShuffleMode();}
         currentPlaylistIndex = activePlaybackPlaylist.indexOf(songItem);
         const songPath = songItem.dataset.path;
         const songName = songItem.dataset.name;
-        const songImage = songItem.dataset.imagePath || DT; 
+        const songImage = songItem.dataset.imagePath || DT;
         currentSongNameSpan.textContent = songName;
         currentSongThumbnail.src = songImage;
-        if (audioPlayer.src !== songPath) {
-             audioPlayer.src = songPath;
-             audioPlayer.load();
-        }
+        if(audioPlayer.src !== songPath){audioPlayer.src = songPath; audioPlayer.load();}
         localStorage.setItem(LS, JSON.stringify({ path: songPath, name: songName, image: songImage }));
-        if (audioPlayer.paused) {togglePlayPause();}
+        updateHistoryWithSongItem(songItem);
+        updatePreviousNextSongInfo();
+        if(audioPlayer.paused){togglePlayPause();}
     };
-    const handleSongClickFromPlaylist = (songItem) => {
+    const handleSongClickFromPlaylist = (songItem, pushHistory = true) => {
         currentPlayingSongItem = songItem;
         document.querySelectorAll('.song-item.active').forEach(item => item.classList.remove('active'));
         const visibleItem = document.querySelector(`.song-item[data-path="${songItem.dataset.path}"]`);
-        if (visibleItem) {visibleItem.classList.add('active');}
+        if(visibleItem){visibleItem.classList.add('active');}
+        if(isShuffleActive){updateShuffleMode();}
         const songPath = songItem.dataset.path;
         const songName = songItem.dataset.name;
         const songImage = songItem.dataset.imagePath || DT;
@@ -425,79 +504,69 @@ document.addEventListener('DOMContentLoaded', () => {
         audioPlayer.load();
         audioPlayer.play().then(() => startProgressBarUpdate()).catch(() => {});
         localStorage.setItem(LS, JSON.stringify({ path: songPath, name: songName, image: songImage }));
+        if(pushHistory){updateHistoryWithSongItem(songItem);}
+        updatePreviousNextSongInfo();
         updateDocumentTitle();
     };
 
     // -------------------- Fortschrittsanzeige und Timer --------------------
+    const updateProgressVisuals = () => {
+        const current = audioPlayer.currentTime;
+        const duration = audioPlayer.duration;
+        if(isNaN(duration) || duration <= 0) return;
+        const progress = (current / duration) * 100;
+        progressBar.value = current;
+        currentTimeSpan.textContent = formatTime(current);
+        progressBar.style.setProperty('--progress-width', `${progress}%`);
+    };
     const startProgressBarUpdate = () => {
-        if (progressBarInterval) {
-            clearInterval(progressBarInterval);
-        }
-        progressBarInterval = setInterval(() => {
-            const current = audioPlayer.currentTime;
-            const duration = audioPlayer.duration;
-            const progress = (current / duration) * 100;
-            
-            progressBar.value = current;
-            currentTimeSpan.textContent = formatTime(current);
-            progressBar.style.setProperty('--progress-width', `${progress}%`);
-        }, 500);
+        updateProgressVisuals();
+        if(progressBarInterval){clearInterval(progressBarInterval);}
+        progressBarInterval = setInterval(updateProgressVisuals, 500);
     };
-
-    const stopProgressBarUpdate = () => {
-        clearInterval(progressBarInterval);
-        progressBarInterval = null;
-    };
+    const stopProgressBarUpdate = () => {clearInterval(progressBarInterval); progressBarInterval = null;};
 
     // -------------------- Event-Listener --------------------
     playPauseBtn.addEventListener('click', togglePlayPause);
     prevBtn.addEventListener('click', playPrevSong);
     nextBtn.addEventListener('click', playNextSong);
     repeatBtn.addEventListener('click', () => {
-        if (isShuffleActive) {
+        if(isShuffleActive){
             isShuffleActive = false;
             shuffleBtn.classList.remove('active-shuffle');
             shuffleIcon.src = SH;
         }
         repeatMode = repeatMode === 'off' ? 'one' : repeatMode === 'one' ? 'all' : 'off';
         updateRepeatMode();
+        updatePreviousNextSongInfo();
     });
     shuffleBtn.addEventListener('click', () => {
         isShuffleActive = !isShuffleActive;
-        if (isShuffleActive) {
-            repeatMode = 'off';
-            updateRepeatMode();
-        }
+        if(isShuffleActive){repeatMode = 'off'; updateRepeatMode();}
         shuffleBtn.classList.toggle('active-shuffle', isShuffleActive);
         shuffleIcon.src = isShuffleActive ? SHA : SH;
-        if (playbackPlaylistOrdered.length > 0) {
-            updateShuffleMode();
-        }
+        if(playbackPlaylistOrdered.length > 0){updateShuffleMode();}
+        updatePreviousNextSongInfo();
     });
     progressBar.addEventListener('input', () => {
-        stopProgressBarUpdate(); 
+        audioPlayer.currentTime = progressBar.value;
+        stopProgressBarUpdate();
         currentTimeSpan.textContent = formatTime(progressBar.value);
         const progress = (progressBar.value / progressBar.max) * 100;
         progressBar.style.setProperty('--progress-width', `${progress}%`);
     });
     progressBar.addEventListener('change', () => {
         audioPlayer.currentTime = progressBar.value;
-        if (!audioPlayer.paused) {
-            startProgressBarUpdate();
-        }
+        if(!audioPlayer.paused){startProgressBarUpdate();}
     });
 
     // -------------------- Audio-Events --------------------
-    audioPlayer.addEventListener('play', () => {
-        playPauseIcon.src = PA;
-    });
-    audioPlayer.addEventListener('pause', () => {
-        playPauseIcon.src = PL;
-    });
+    audioPlayer.addEventListener('play', () => {playPauseIcon.src = PA; startProgressBarUpdate();});
+    audioPlayer.addEventListener('pause', () => {playPauseIcon.src = PL; stopProgressBarUpdate();});
     audioPlayer.addEventListener('ended', () => {
         stopProgressBarUpdate();
-        if (repeatMode === 'one') {audioPlayer.play();}
-        else {playNextSong();}
+        if(repeatMode === 'one'){audioPlayer.play();}
+        else{playNextSong();}
         updateDocumentTitle();
     });
     audioPlayer.addEventListener('loadedmetadata', () => {
@@ -507,43 +576,65 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTimeSpan.textContent = formatTime(0);
         progressBar.style.setProperty('--progress-width', `0%`);
     });
+    audioPlayer.addEventListener('timeupdate', updateProgressVisuals);
 
     // -------------------- Lautstärkeregelung --------------------
     volumeSlider.addEventListener('input', () => {
         audioPlayer.volume = volumeSlider.value;
         audioPlayer.muted = (audioPlayer.volume < 0.01);
-        updateVolumeIcon(); 
+        updateVolumeIcon();
         updateVolumeTooltip();
     });
-    volumeSlider.addEventListener('change', () => {
-    });
     muteUnmuteBtn.addEventListener('click', () => {
-        if (audioPlayer.muted) {
+        if(audioPlayer.muted){
             let volumeToSet = parseFloat(localStorage.getItem(LV)) || 0.1;
             audioPlayer.volume = volumeToSet;
             audioPlayer.muted = false;
             volumeSlider.value = volumeToSet;
         }
-        else {audioPlayer.muted = true; volumeSlider.value = 0;}
+        else{audioPlayer.muted = true; volumeSlider.value = 0;}
         updateVolumeIcon();
         updateVolumeTooltip(false);
     });
     audioPlayer.addEventListener('volumechange', updateVolumeIcon);
 
-
     // -------------------- Initialisierung --------------------
+    const updateMediaSessionMetadata = () => {
+        if(!('mediaSession' in navigator)) return;
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: currentPlayingSongItem?.dataset.name || 'Kein Song ausgewählt',
+            artist: 'Musiksammlung von JohansenBre',
+            album: currentFolderTitle.textContent || '',
+            artwork: [{ src: currentSongThumbnail.src || DT, sizes: '96x96', type: 'image/png' }]
+        });
+        navigator.mediaSession.playbackState = audioPlayer.paused ? 'paused' : 'playing';
+    };
     const updateDocumentTitle = () => {
         const titlePrefix = 'Musiksammlung von JohansenBre';
-        if (currentPlayingSongItem && !audioPlayer.paused) {
-             document.title = `▶ ${currentPlayingSongItem.dataset.name} - ${titlePrefix}`;
-        }
-        else {document.title = titlePrefix;}
+        if(currentPlayingSongItem && !audioPlayer.paused){document.title = `▶ ${currentPlayingSongItem.dataset.name} - ${titlePrefix}`;}
+        else{document.title = titlePrefix;}
+        updateMediaSessionMetadata();
     };
+    const initializeMediaSession = () => {
+        if(!('mediaSession' in navigator)) return;
+        navigator.mediaSession.setActionHandler('play', () => togglePlayPause());
+        navigator.mediaSession.setActionHandler('pause', () => togglePlayPause());
+        navigator.mediaSession.setActionHandler('previoustrack', () => playPrevSong());
+        navigator.mediaSession.setActionHandler('nexttrack', () => playNextSong());
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+            if(details.fastSeek && 'fastSeek' in audioPlayer){audioPlayer.fastSeek(details.seekTime);}
+            else{audioPlayer.currentTime = details.seekTime;}
+            updateProgressVisuals();
+        });
+    };
+
     const initializeApp = () => {
+        loadHistory();
         audioPlayer.volume = lastKnownVolume;
         volumeSlider.value = lastKnownVolume;
         updateVolumeIcon();
         updateVolumeTooltip();
+        initializeMediaSession();
         repeatMode = 'off';
         updateRepeatMode();
         shuffleIcon.src = SH;
@@ -551,26 +642,27 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFolders();
         let folderToLoad = currentFolderKey;
         let folderTitleToLoad = 'Wähle eine Sammlung';
-        if (musicFolders[folderToLoad]) {
+
+        if(musicFolders[folderToLoad]){
             folderTitleToLoad = folderToLoad.replace(/-/g, ' ').split(' ')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
         }
-        else {
+        else{
             folderToLoad = Object.keys(musicFolders)[0];
-            if (folderToLoad) {
-                 folderTitleToLoad = folderToLoad.replace(/-/g, ' ').split(' ')
+            if(folderToLoad){
+                folderTitleToLoad = folderToLoad.replace(/-/g, ' ').split(' ')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(' ');
             }
         }
         loadFolderSongs(folderToLoad, folderTitleToLoad).then(() => {
             const lastSongData = localStorage.getItem(LS);
-            if (lastSongData) {
-                 const {path, name, image} = JSON.parse(lastSongData);
-                 currentSongNameSpan.textContent = name;
-                 currentSongThumbnail.src = image || DT; 
-                 audioPlayer.src = path;
+            if(lastSongData){
+                const {path, name, image} = JSON.parse(lastSongData);
+                currentSongNameSpan.textContent = name;
+                currentSongThumbnail.src = image || DT;
+                audioPlayer.src = path;
             }
             updateDocumentTitle();
         });
@@ -579,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------- Theme / Hoher Kontrast --------------------
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const applyTheme = (isHighContrast) => {
-        if (isHighContrast) {
+        if(isHighContrast){
             document.body.classList.add('high-contrast');
             themeToggleBtn.textContent = 'Hoher Kontrast: An';
         }
