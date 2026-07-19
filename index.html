@@ -4,14 +4,14 @@
     <link rel="icon" href="Bilder/Blank.svg"type="image/svg">
     <meta charset="UTF-8">
     <meta name="viewport"content="width=device-width,initial-scale=1.0">
-    <title>Musiksammlung (YT Style)</title>
+    <title>Musiksammlung</title>
     <link rel="stylesheet"href="./Songs.css">
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
             <h3>Meine Sammlungen</h3>
-            <button id="themeToggleBtn" class="theme-toggle-btn">Hoher Kontrast: Aus</button>
+            <button id="themeToggleBtn"class="theme-toggle-btn">Hoher Kontrast: Aus</button>
             <div class="folder-nav-wrapper">
                 <ul class="folder-list"id="folderList"></ul>
             </div>
@@ -32,8 +32,12 @@
         </div>
         <div class="player-controls-container">
             <div class="current-song-info">
-                <img id="currentSongThumbnail"src=""alt="Song Thumbnail"class="song-thumbnail-player">
-                <span id="currentSongName">Kein Song ausgewählt</span>
+                <img id="currentSongThumbnail"src=""class="song-thumbnail-player">
+                <div class="song-name-stack">
+                    <span id="previousSongName"class="related-song previous-song-name">Kein vorheriger Song</span>
+                    <span id="currentSongName">Kein Song ausgewählt</span>
+                    <span id="nextSongName"class="related-song next-song-name">Kein nächster Song</span>
+                </div>
             </div>
             <div class="controls">
                 <button id="prevBtn"><img src="Bilder/Previous.svg"></button>
